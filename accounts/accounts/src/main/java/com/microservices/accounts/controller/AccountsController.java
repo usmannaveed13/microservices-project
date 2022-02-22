@@ -1,5 +1,7 @@
 package com.microservices.accounts.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,9 +13,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.microservices.accounts.config.AccountsServiceConfig;
 import com.microservices.accounts.model.Accounts;
+import com.microservices.accounts.model.Cards;
 import com.microservices.accounts.model.Customer;
+import com.microservices.accounts.model.CustomerDetails;
+import com.microservices.accounts.model.Loans;
 import com.microservices.accounts.model.Properties;
 import com.microservices.accounts.repository.AccountsRepository;
+import com.microservices.accounts.service.client.CardsFeignClient;
+import com.microservices.accounts.service.client.LoansFeignClient;
 
 @RestController
 public class AccountsController {
@@ -23,6 +30,12 @@ public class AccountsController {
 	 
 	@Autowired
 	AccountsServiceConfig accountsConfig;
+	
+	@Autowired
+	private LoansFeignClient loansFeignClient;
+	
+	@Autowired
+	private CardsFeignClient cardsFeignClient;
 	
 	@PostMapping("/myAccount")
 	public Accounts getAccountsDetails(@RequestBody Customer customer) {
@@ -44,5 +57,22 @@ public class AccountsController {
 		return jsonStr;
 		
 	}
+    
+	@PostMapping("/myCustomerDetails")
+	public CustomerDetails myCustomerDetails(@RequestBody Customer customer) {
+		
+		Accounts accounts = accountRepository.findByCustomerId(customer.getCustomerId());
+		List<Loans> loans = loansFeignClient.getLoansDetails(customer);
+		List<Cards> cards = cardsFeignClient.getCardDetails(customer);
+		
+		CustomerDetails customerDetails = new CustomerDetails();
+		customerDetails.setAccounts(accounts);
+		customerDetails.setCards(cards);
+		customerDetails.setLoans(loans);
+		return customerDetails;
+		
+	}
+
+	
 
 }
