@@ -9,12 +9,12 @@ services:
     
     networks:
       - microservice-network
-  accounts:
-    image: usmannaveed13/accounts:latest
+      
+  eurekaserver:
+    image: usmannaveed13/eurekaserver:latest
     mem_limit: 700m
     ports:
-      - "8080:8080"
-    
+      - "8070:8070"
     networks:
       - microservice-network
     depends_on:
@@ -27,7 +27,29 @@ services:
         window: 120s
     environment:  
       SPRING_PROFILES_ACTIVE: dev
+      SPRING_CONFIG_IMPORT: configserver:http://configserver:8071/
+          
+  accounts:
+    image: usmannaveed13/accounts:latest
+    mem_limit: 700m
+    ports:
+      - "8080:8080"
+    
+    networks:
+      - microservice-network
+    depends_on:
+      - configserver
+      - eurekaserver
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    environment:  
+      SPRING_PROFILES_ACTIVE: dev
       SPRING_CONFIG_IMPORT: configserver:http://configserver:8071/   
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eurekaserver:8070/eureka 
            
   loans:
     image: usmannaveed13/loans:latest
@@ -39,6 +61,7 @@ services:
       - microservice-network
     depends_on:
       - configserver
+      - eurekaserver
     deploy:
       restart_policy:
         condition: on-failure
@@ -48,6 +71,7 @@ services:
     environment:  
       SPRING_PROFILES_ACTIVE: dev
       SPRING_CONFIG_IMPORT: configserver:http://configserver:8071/     
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eurekaserver:8070/eureka
          
   cards:
     image: usmannaveed13/cards:latest
@@ -58,7 +82,8 @@ services:
     networks:
       - microservice-network
     depends_on:
-      - configserver  
+      - configserver
+      - eurekaserver  
     deploy:
       restart_policy:
         condition: on-failure
@@ -68,7 +93,7 @@ services:
     environment:  
       SPRING_PROFILES_ACTIVE: dev
       SPRING_CONFIG_IMPORT: configserver:http://configserver:8071/  
-      
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eurekaserver:8070/eureka
   
 networks:
   microservice-network: 
