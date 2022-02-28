@@ -23,6 +23,7 @@ import com.microservices.accounts.service.client.CardsFeignClient;
 import com.microservices.accounts.service.client.LoansFeignClient;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.github.resilience4j.retry.annotation.Retry;
 
 @RestController
@@ -85,6 +86,16 @@ public class AccountsController {
 		customerDetails.setAccounts(accounts);
 		customerDetails.setLoans(loans);
 		return customerDetails;
+	}
+	
+	@GetMapping("/sayHello")
+	@RateLimiter(name = "sayHello", fallbackMethod = "sayHelloFallback")
+	public String sayHello() {
+		return "Hello, Welcome to microservices";
+	}
+	
+	private String sayHelloFallback(Throwable t) {
+		return "Hi, Welcome to microservices";
 	}
 
 }
