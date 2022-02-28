@@ -23,6 +23,7 @@ import com.microservices.accounts.service.client.CardsFeignClient;
 import com.microservices.accounts.service.client.LoansFeignClient;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 
 @RestController
 public class AccountsController {
@@ -61,7 +62,8 @@ public class AccountsController {
 	}
     
 	@PostMapping("/myCustomerDetails")
-	@CircuitBreaker(name = "detailsForCustomerSupportApp", fallbackMethod = "myCustomerDetailsFallBack")
+//	@CircuitBreaker(name = "detailsForCustomerSupportApp", fallbackMethod = "myCustomerDetailsFallBack")
+	@Retry(name= "retryForCustomerDetails", fallbackMethod = "myCustomerDetailsFallBack")
 	public CustomerDetails myCustomerDetails(@RequestBody Customer customer) {
 		
 		Accounts accounts = accountRepository.findByCustomerId(customer.getCustomerId());
