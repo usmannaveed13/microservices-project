@@ -27,6 +27,7 @@ import com.microservices.accounts.service.client.LoansFeignClient;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.github.resilience4j.retry.annotation.Retry;
+import io.micrometer.core.annotation.Timed;
 
 @RestController
 public class AccountsController {
@@ -46,6 +47,7 @@ public class AccountsController {
 	private CardsFeignClient cardsFeignClient;
 	
 	@PostMapping("/myAccount")
+	@Timed(value = "getAccountsDetails.time", description = "Time taken to return Account Details")
 	public Accounts getAccountsDetails(@RequestBody Customer customer) {
 		Accounts accounts = accountRepository.findByCustomerId(customer.getCustomerId());
 		if (accounts != null) {
